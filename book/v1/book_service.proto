@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package book.v1;
+
+option go_package = "yeyee2901/protobuf/gen/go/book/v1;bookpb";
+
+import "book/v1/book.proto";
+
+service BookService {
+  rpc GetBook(GetBookRequest) returns (GetBookResponse) {};
+}
+
+message GetBookRequest {
+  string title = 1;
+}
+
+message GetBookResponse {
+  Book book = 1;
+}

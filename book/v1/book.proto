@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package book.v1;
+
+option go_package = "yeyee2901/protobuf/gen/go/book/v1;bookpb";
+
+message Book {
+  string title = 1;
+  string isbn  = 2;
+  uint32 tahun = 3;
+}
