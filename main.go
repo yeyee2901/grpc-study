@@ -1,53 +1,39 @@
 package main
 
 import (
-    // sys
-	"fmt"
+	"context"
 	"log"
-	"os"
-
-	// protobuf stuff
-	"google.golang.org/protobuf/proto"
-
-    // gRPC stuffs
+	"net"
 
 	bookpb "yeyee2901/protobuf/gen/go/book/v1"
+
+	"google.golang.org/grpc"
 )
+
+type bookService struct{}
+
+func (bs *bookService) GetBook(_ context.Context, req *bookpb.GetBookRequest) (*bookpb.GetBookResponse, error) {
+	return &bookpb.GetBookResponse{
+		Book: &bookpb.Book{
+			Title: req.Title,
+			Isbn:  "123456789",
+			Tahun: 2022,
+		},
+	}, nil
+}
 
 func main() {
 
-	// create protobuf
-	someUser := bookpb.Book{
-		Title: "Protobuf Tutorial",
-		Tahun: 2000,
-		Isbn:  "123456789",
-	}
-
-	// WRITER ------------------------------------------
-	byteBuf, err := proto.Marshal(&someUser)
+	listener, err := net.Listen("tcp", "localhost:3030")
 
 	if err != nil {
-		log.Fatalln("[PROTOBUF] Failed to marshal")
+		log.Fatalf("Failed to listen %v", err)
 	}
 
-	if err := os.WriteFile("result.bin", byteBuf, 0644); err != nil {
-		log.Fatalln("[OS] Failed to binary write to file", err)
+	grpcServer := grpc.NewServer()
+	bookpb.RegisterBookServiceServer(grpcServer, &bookService{})
+
+	if err := grpcServer.Serve(listener); err != nil {
+		log.Printf("%v", err)
 	}
-
-	// READER ------------------------------------------
-	byteRes, err := os.ReadFile("./result.bin")
-
-	if err != nil {
-		log.Fatalln("[OS] Failed to read file", err)
-	}
-
-	resultUnmarshal := new(bookpb.Book)
-
-	err = proto.Unmarshal(byteRes, resultUnmarshal)
-
-	if err != nil {
-		log.Fatalln("[PROTOBUF]", err)
-	}
-
-	fmt.Println(resultUnmarshal)
 }
