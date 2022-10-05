@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 
@@ -13,6 +14,7 @@ import (
 type bookService struct{}
 
 func (bs *bookService) GetBook(_ context.Context, req *bookpb.GetBookRequest) (*bookpb.GetBookResponse, error) {
+    fmt.Println("Received: ", req.String())
 	return &bookpb.GetBookResponse{
 		Book: &bookpb.Book{
 			Title: req.Title,
@@ -24,15 +26,21 @@ func (bs *bookService) GetBook(_ context.Context, req *bookpb.GetBookRequest) (*
 
 func main() {
 
+	// create TCP socket
 	listener, err := net.Listen("tcp", "localhost:3030")
 
 	if err != nil {
 		log.Fatalf("Failed to listen %v", err)
 	}
 
+	// create grpc server
 	grpcServer := grpc.NewServer()
-	bookpb.RegisterBookServiceServer(grpcServer, &bookService{})
 
+	// register services
+	bookServer := new(bookService)
+	bookpb.RegisterBookServiceServer(grpcServer, bookServer)
+
+	// bind the grpc server in the tcp socket
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Printf("%v", err)
 	}
