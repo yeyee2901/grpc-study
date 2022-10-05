@@ -1,4 +1,4 @@
-module yeyee2901/protobuf
+module yeyee2901/grpc
 
 go 1.19
 

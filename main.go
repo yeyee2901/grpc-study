@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 
-	bookpb "yeyee2901/protobuf/gen/go/book/v1"
+	bookpb "yeyee2901/grpc/gen/go/book/v1"
 
 	"google.golang.org/grpc"
 )
