@@ -3,9 +3,11 @@ My journey on studying gRPC implementation in golang
 
 # Creating Protobuf
 - Install `buf`, this is a wrapper program for `protoc` (protobuf compiler)
-```
+```bash
 go install github.com/bufbuild/buf/cmd/buf@latest
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest # dependency
+
+# plugin for golang template
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 ```
 - Create `buf.yaml`, this contains the options for linting our protobuf files
 ```yaml
