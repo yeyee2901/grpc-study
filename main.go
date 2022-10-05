@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
-
-	bookpb "yeyee2901/grpc/gen/go/book/v1"
+	bookpb "yeyee2901/grpc/gen/book/v1"
 
 	"google.golang.org/grpc"
 )
@@ -14,14 +13,18 @@ import (
 type bookService struct{}
 
 func (bs *bookService) GetBook(_ context.Context, req *bookpb.GetBookRequest) (*bookpb.GetBookResponse, error) {
-    fmt.Println("Received: ", req.String())
-	return &bookpb.GetBookResponse{
+    // print the request
+	fmt.Println("Received: ", req.String())
+
+    // return the result
+	resp := &bookpb.GetBookResponse{
 		Book: &bookpb.Book{
 			Title: req.Title,
 			Isbn:  "123456789",
 			Tahun: 2022,
 		},
-	}, nil
+	}
+	return resp, nil
 }
 
 func main() {

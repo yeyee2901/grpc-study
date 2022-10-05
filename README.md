@@ -1,41 +1,64 @@
 # gRPC Golang
 My journey on studying gRPC implementation in golang
 
-# Creating Protobuf
-- Install `buf`, this is a wrapper program for `protoc` (protobuf compiler)
+# Project Structure (Best Practice from Google)
+```
+root
+├── book                        # contains protobufs related to book
+│   └── v1
+│       ├── book.proto          # book models
+│       └── book_service.proto  # book services
+│
+├── client                      # for demonstration purposes
+│   └── client.go
+│
+├── gen                         # generated protobuf stubs, if you want
+│   └── book                    # you can create additional parent dir for
+│       └── v1                  # each language implementations
+│           ├── book.pb.go
+│           ├── book_service_grpc.pb.go
+│           └── book_service.pb.go
+│
+├── app                         # your application root
+│   ├── service                 # service routing
+│   ├── datasource              # database, redis, etc connection
+│   └── book                    # book related services should be handled here
+├── go.mod
+├── go.sum
+├── Makefile
+└── main.go
+```
+
+# Installing Tools for Working with Protobuf
+We need 3 things:
+- `protoc`, the protobuf compiler. This is responsible for generating the code & stubs for your language of choice. Check your system for how to install these. I used Ubuntu & Arch, so I can provide the package name, otherwise you might need to install from [source]( https://developers.google.com/protocol-buffers/)
+- `protoc-gen-go`, a plugin for `protoc` which provides the capability of generating `golang` interfaces
+- `protoc-gen-go-grpc`, same as `protoc-gen-go`, but also provides the interface for integrating with gRPC services
 ```bash
-go install github.com/bufbuild/buf/cmd/buf@latest
+# arch based system
+yay -S protobuf  # available in AUR
 
-# plugin for golang template
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-```
-- Create `buf.yaml`, this contains the options for linting our protobuf files
-```yaml
-version: v1
-breaking:
-  use:
-    - FILE
-lint:
-  use:
-    - DEFAULT
-```
-- Create `buf.gen.yaml`, this contains the options controlling the actual protobufs compilation
-```yaml
-version: v1
-plugins:
-  - name: go
-    out: gen/go                    # output directory prefix
-    opt: paths=source_relative     # where the paths are located
-  - name: go-grpc
-    out: gen/go
-    opt: 
-      - paths=source_relative
-      - require_unimplemented_servers=false # optional
-```
-- If we want to generate stubs for another language, we can do so by specifying a new entry for the specified language, refer to [documentation](https://docs.buf.build/configuration/v1/buf-gen-yaml)
-- Now create the protobuf files, and simply run `buf lint` to lookup for errors
-- After creating the protobuf files, run `buf generate` to generate the stubs for your language of choice!
+# debian based system
+sudo apt install protobuf-compiler
 
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest # plugin for generating go code
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest # plugin for generating golang grpc code
+```
+- Create `Makefile`, we will define our protobuf compile command & options here
+```make
+BASE_OUTPUT_DIR = ./gen
+
+
+all: proto-go
+
+proto-go:
+	protoc  --go_out=${BASE_OUTPUT_DIR} --go_opt=paths=source_relative \
+			--go-grpc_out=${BASE_OUTPUT_DIR} --go-grpc_opt=paths=source_relative \ 
+			--go-grpc_opt=require_unimplemented_servers=false \
+			book/v1/*.proto
+
+```
+*Note: the `require_unimplemented_servers=false` will disable forward compatibility. For most cases, this shouldn't matter much.
 &nbsp;  
   
 
@@ -43,13 +66,13 @@ plugins:
 
 # Sample Protobuf Service Definition
 ### /book/v1/book.proto
-Contains the model definitions. Make sure the `package` & `go_package` matches what `opt` you specified in `buf.gen.yaml`
+Contains the model definitions.
 ```proto
 syntax = "proto3";
 
 package book.v1;
 
-option go_package = "yeyee2901/protobuf/gen/go/book/v1;bookpb";
+option go_package = "yeyee2901/protobuf/gen/book/v1;bookpb";
 
 message Book {
   string title = 1;
@@ -67,7 +90,7 @@ syntax = "proto3";
 
 package book.v1;
 
-option go_package = "yeyee2901/protobuf/gen/go/book/v1;bookpb";
+option go_package = "yeyee2901/protobuf/gen/book/v1;bookpb";
 
 import "book/v1/book.proto";
 
@@ -89,10 +112,31 @@ message GetBookResponse {
 
 
 # Creating gRPC Server
+- Implement the `GetBook` method from `BookServiceServer`
 - Create TCP socket
 - create new grpc server object
 - register the services
 ```go
+type bookService struct{}
+
+// implement the GetBook method, this is required so we can register the service to the gRPC server
+func (bs *bookService) GetBook(_ context.Context, req *bookpb.GetBookRequest) (*bookpb.GetBookResponse, error) {
+    // print the request
+	fmt.Println("Received: ", req.String())
+
+    // return the result
+	resp := &bookpb.GetBookResponse{
+		Book: &bookpb.Book{
+			Title: req.Title,
+			Isbn:  "123456789",
+			Tahun: 2022,
+		},
+	}
+	return resp, nil
+}
+
+
+// in main .......
 // create TCP socket
 listener, err := net.Listen("tcp", "localhost:3030")
 
