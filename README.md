@@ -1,5 +1,5 @@
 # gRPC Golang
-My journey on studying gRPC implementation in golang
+My journey on studying gRPC implementation in golang  
 &nbsp;  
 **Target**:
 - Integrate with `mysql` database (using `sqlx` package)
