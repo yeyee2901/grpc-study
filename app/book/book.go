@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"time"
 
+	"yeyee2901/grpc/app/datasource"
 	bookpb "yeyee2901/grpc/gen/proto/book/v1"
-
-	"google.golang.org/grpc"
 )
 
 type BookService struct {
-	GRPCServer *grpc.Server
+	DataSource *datasource.DataSource
 }
 
-func NewBookService() *BookService {
-	return &BookService{}
+func NewBookService(ds *datasource.DataSource) *BookService {
+	return &BookService{
+		DataSource: ds,
+	}
 }
 
 func (bs *BookService) GetBook(_ context.Context, req *bookpb.GetBookRequest) (*bookpb.GetBookResponse, error) {
@@ -23,13 +24,16 @@ func (bs *BookService) GetBook(_ context.Context, req *bookpb.GetBookRequest) (*
 	fmt.Println("[GetBook] Received: ", req.String())
 
 	// return the result
-	resp := &bookpb.GetBookResponse{
-		Book: &bookpb.Book{
-			Title: req.Title,
-			Isbn:  "123456789",
-			Tahun: 2022,
-		},
+	newBook := &bookpb.Book{
+		Title: req.Title,
+		Isbn:  "123456789",
+		Tahun: 2022,
 	}
+
+	resp := &bookpb.GetBookResponse{
+		Book: newBook,
+	}
+
 	return resp, nil
 }
 
@@ -51,6 +55,22 @@ func (T *BookService) GetBookStream(req *bookpb.GetBookRequest, stream bookpb.Bo
 	}
 
 	return nil
+}
+
+func (bs *BookService) SaveBook(_ context.Context, req *bookpb.SaveBookRequest) (resp *bookpb.SaveBookResponse, err error) {
+	book := req.Book
+
+	err = bs.DataSource.SaveBook(book)
+
+	if err != nil {
+		return nil, err
+	}
+
+	resp = &bookpb.SaveBookResponse{
+		Message: "Sukses",
+	}
+
+	return
 }
 
 func generateDummyBooks(count int) []*bookpb.Book {

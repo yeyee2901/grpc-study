@@ -7,8 +7,12 @@ option go_package = "yeyee2901/grpc/gen/book/v1;bookpb";
 import "proto/book/v1/book.proto";
 
 service BookService {
+  // get data
   rpc GetBook(GetBookRequest) returns (GetBookResponse) {};
   rpc GetBookStream(GetBookRequest) returns (stream GetBookResponse) {};
+
+  // save to database
+  rpc SaveBook(SaveBookRequest) returns (SaveBookResponse) {};
 }
 
 message GetBookRequest {
@@ -17,4 +21,12 @@ message GetBookRequest {
 
 message GetBookResponse {
   Book book = 1;
+}
+
+message SaveBookRequest {
+  Book book = 1;
+}
+
+message SaveBookResponse {
+  string message = 1;
 }
