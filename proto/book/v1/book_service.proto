@@ -2,12 +2,13 @@ syntax = "proto3";
 
 package book.v1;
 
-option go_package = "yeyee2901/protobuf/gen/book/v1;bookpb";
+option go_package = "yeyee2901/grpc/gen/book/v1;bookpb";
 
-import "book/v1/book.proto";
+import "proto/book/v1/book.proto";
 
 service BookService {
   rpc GetBook(GetBookRequest) returns (GetBookResponse) {};
+  rpc GetBookStream(GetBookRequest) returns (stream GetBookResponse) {};
 }
 
 message GetBookRequest {

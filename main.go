@@ -1,50 +1,43 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"net"
-	bookpb "yeyee2901/grpc/gen/book/v1"
+
+	"yeyee2901/grpc/app/service"
 
 	"google.golang.org/grpc"
 )
 
-type bookService struct{}
+type App struct {
+	Listener   net.Listener
+	GRPCServer *grpc.Server
+}
 
-func (bs *bookService) GetBook(_ context.Context, req *bookpb.GetBookRequest) (*bookpb.GetBookResponse, error) {
-    // print the request
-	fmt.Println("Received: ", req.String())
-
-    // return the result
-	resp := &bookpb.GetBookResponse{
-		Book: &bookpb.Book{
-			Title: req.Title,
-			Isbn:  "123456789",
-			Tahun: 2022,
-		},
-	}
-	return resp, nil
+func (app *App) InitGRPCServices() {
+	service := service.NewService(app.GRPCServer)
+	service.RegisterGRPCServices()
 }
 
 func main() {
+  app := App{}
 
-	// create TCP socket
+  // INIT: Create TCP socket
 	listener, err := net.Listen("tcp", "localhost:3030")
 
 	if err != nil {
 		log.Fatalf("Failed to listen %v", err)
 	}
 
-	// create grpc server
-	grpcServer := grpc.NewServer()
+  app.Listener = listener
 
-	// register services
-	bookServer := new(bookService)
-	bookpb.RegisterBookServiceServer(grpcServer, bookServer)
+  // INIT: gRPC services
+	grpcServer := grpc.NewServer()
+  app.GRPCServer = grpcServer
+  app.InitGRPCServices()
 
 	// bind the grpc server in the tcp socket
-	if err := grpcServer.Serve(listener); err != nil {
+	if err := app.GRPCServer.Serve(listener); err != nil {
 		log.Printf("%v", err)
 	}
 }
