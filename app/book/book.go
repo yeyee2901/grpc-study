@@ -3,6 +3,7 @@ package book
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"yeyee2901/grpc/app/datasource"
@@ -20,9 +21,6 @@ func NewBookService(ds *datasource.DataSource) *BookService {
 }
 
 func (bs *BookService) GetBook(_ context.Context, req *bookpb.GetBookRequest) (*bookpb.GetBookResponse, error) {
-	// print the request
-	fmt.Println("[GetBook] Received: ", req.String())
-
 	// return the result
 	newBook := &bookpb.Book{
 		Title: req.Title,
@@ -41,7 +39,6 @@ func (T *BookService) GetBookStream(req *bookpb.GetBookRequest, stream bookpb.Bo
 	books := generateDummyBooks(5)
 
 	for _, book := range books {
-		fmt.Printf("[GetBookStream] Sending: %v\n", book)
 		// simulate waiting
 		time.Sleep(time.Duration(1) * time.Second)
 
@@ -63,11 +60,16 @@ func (bs *BookService) SaveBook(_ context.Context, req *bookpb.SaveBookRequest) 
 	err = bs.DataSource.SaveBook(book)
 
 	if err != nil {
+        resp = &bookpb.SaveBookResponse{
+        	Message:   "[ERROR] "+err.Error(),
+        	NewBookId: 0,
+        }
 		return nil, err
 	}
 
 	resp = &bookpb.SaveBookResponse{
-		Message: "Sukses",
+		Message:   "Sukses. Abaikan NewBookId, karena masih generate random, masih ngoprek RETURNING clause di driver pgx - sqlx golang",
+		NewBookId: int64(rand.Int()),
 	}
 
 	return

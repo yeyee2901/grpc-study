@@ -3,3 +3,4 @@ gen
 grpc
 .envrc
 Session.vim
+log/

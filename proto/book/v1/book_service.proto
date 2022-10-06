@@ -29,4 +29,5 @@ message SaveBookRequest {
 
 message SaveBookResponse {
   string message = 1;
+  int64 new_book_id = 2;
 }

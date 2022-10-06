@@ -1,8 +1,6 @@
 package datasource
 
 import (
-	"fmt"
-
 	"github.com/jmoiron/sqlx"
 )
 
@@ -24,24 +22,21 @@ func (ds *DataSource) SaveBook(newBook interface{}) (err error) {
         (:title, :isbn, :tahun)
     `
 
-    fmt.Printf("ds.DB: %v\n", ds.DB)
-    fmt.Printf("newBook: %v\n", newBook)
-    tx := ds.DB.MustBegin()
+	tx := ds.DB.MustBegin()
 
-    result, err := tx.NamedExec(query, newBook)
-    if err != nil {
-        tx.Rollback()
-        return
-    }
+	result, err := tx.NamedExec(query, newBook)
+	if err != nil {
+		tx.Rollback()
+		return
+	}
 
-    err = tx.Commit()
-    if err != nil {
-        tx.Rollback()
-        return
-    }
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return
+	}
 
-    id, err := result.LastInsertId()
+	_, err = result.LastInsertId()
 
-    fmt.Println("Inserted ID: ", id)
-    return nil
+	return nil
 }

@@ -1,15 +1,25 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"net"
 	"net/url"
+	"os"
+	"time"
 
+	"yeyee2901/grpc/app/interceptors"
 	"yeyee2901/grpc/app/service"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
+	"gopkg.in/natefinch/lumberjack.v2"
+)
+
+const (
+	TIMESTAMP_FORMAT = time.RFC3339
 )
 
 type App struct {
@@ -19,8 +29,6 @@ type App struct {
 }
 
 func (app *App) InitGRPCServices() {
-	service := service.NewService(app.GRPCServer, app.DB)
-	service.RegisterGRPCServices()
 }
 
 func (app *App) InitDatabase() {
@@ -40,10 +48,40 @@ func (app *App) InitDatabase() {
 	db, err := sqlx.Open("pgx", dsConn.String())
 
 	if err != nil || db == nil {
-		log.Fatalln("Failed to connect to database", err)
+		log.Error().Msg("Failed to connect to database")
 	}
 
 	app.DB = db
+}
+
+func (app *App) InitGRPCServer() {
+	serverOpts := []grpc.ServerOption{
+		// middlewares
+		grpc.UnaryInterceptor(interceptors.LoggerUnaryRPC),
+	}
+
+	// init the server with options
+	grpcServer := grpc.NewServer(serverOpts...)
+	app.GRPCServer = grpcServer
+
+	// register the services
+	service := service.NewService(app.GRPCServer, app.DB)
+	service.RegisterGRPCServices()
+}
+
+func (app *App) InitLogger() {
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	zerolog.TimeFieldFormat = TIMESTAMP_FORMAT
+	log.Logger = zerolog.New(&lumberjack.Logger{
+		Filename:   "log/service.log",
+		MaxSize:    100,
+		MaxBackups: 3,
+		MaxAge:     30,
+		Compress:   true,
+	})
+	log.Logger = log.With().Str("service", "gRPC Golang").Logger()
+	log.Logger = log.With().Caller().Logger()
+	log.Logger = log.With().Timestamp().Logger()
 }
 
 func main() {
@@ -51,9 +89,9 @@ func main() {
 
 	// INIT: Create TCP socket
 	listener, err := net.Listen("tcp", "localhost:3030")
-
 	if err != nil {
-		log.Fatalf("Failed to listen %v", err)
+		fmt.Println("[ERROR] Failed to create listener")
+		os.Exit(1)
 	}
 
 	app.Listener = listener
@@ -61,15 +99,16 @@ func main() {
 	// INIT: databse PostgreSQL
 	app.InitDatabase()
 
-	// TODO: INIT interceptors (middlewares)
+	// TODO: INIT custom logger
+	app.InitLogger()
 
-	// INIT: gRPC services
-	grpcServer := grpc.NewServer()
-	app.GRPCServer = grpcServer
-	app.InitGRPCServices()
+	// INIT: gRPC Server
+	app.InitGRPCServer()
 
 	// Start the server :)
+	fmt.Println("Server starting ....")
 	if err := app.GRPCServer.Serve(listener); err != nil {
-		log.Printf("%v", err)
+		fmt.Println("Server exited ...")
+		os.Exit(1)
 	}
 }
