@@ -9,29 +9,30 @@ My journey on studying gRPC implementation in golang
 # Project Structure (Best Practice from Google)
 ```
 root
-├── book                        # contains protobufs related to book
-│   └── v1
-│       ├── book.proto          # book models
-│       └── book_service.proto  # book services
-│
-├── client                      # for demonstration purposes
+├── app
+│   ├── service                                 # Register gRPC services here
+│   │   └── service.go
+│   └── book                                    # book services stubs & logics are implemented here
+│       └── book.go
+├── client                                      # for demonstration purposes
 │   └── client.go
-│
-├── gen                         # generated protobuf stubs, if you want
-│   └── book                    # you can create additional parent dir for
-│       └── v1                  # each language implementations
-│           ├── book.pb.go
-│           ├── book_service_grpc.pb.go
-│           └── book_service.pb.go
-│
-├── app                         # your application root
-│   ├── service                 # service routing
-│   ├── datasource              # database, redis, etc connection
-│   └── book                    # book related services should be handled here
+├── gen                                         # generated stubs
+│   └── proto
+│       └── book                                # book stubs
+│           └── v1
+│               ├── book.pb.go
+│               ├── book_service_grpc.pb.go
+│               └── book_service.pb.go
+├── proto                                       # proto files
+│   └── book                                    # proto files related to books
+│       └── v1
+│           ├── book.proto
+│           └── book_service.proto
 ├── go.mod
 ├── go.sum
-├── Makefile
-└── main.go
+├── main.go                                     # entry point
+├── Makefile                                    # for simplifying build command
+└── README.md                                   # readme senpai~
 ```
 
 # Installing Tools for Working with Protobuf
