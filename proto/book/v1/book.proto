@@ -5,7 +5,12 @@ package book.v1;
 option go_package = "yeyee2901/grpc/gen/book/v1;bookpb";
 
 message Book {
+  // @gotags: db:"title"
   string title = 1;
-  string isbn  = 2;
+
+  // @gotags: db:"isbn"
+  string isbn = 2;
+
+  // @gotags: db:"tahun"
   uint32 tahun = 3;
 }
