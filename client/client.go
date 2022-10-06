@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
-	bookpb "yeyee2901/grpc/gen/book/v1"
+	bookpb "yeyee2901/grpc/gen/proto/book/v1"
 
 	"google.golang.org/grpc"
 )
@@ -25,7 +26,7 @@ func main() {
 	// create book client
 	bookClient := bookpb.NewBookServiceClient(conn)
 
-	// try requesting
+	// get single book -------------------------------------------------
 	req := &bookpb.GetBookRequest{
 		Title: "Book #1",
 	}
@@ -40,4 +41,29 @@ func main() {
 		bookResp.Book.GetIsbn(),
 		bookResp.Book.GetTahun(),
 	)
+
+	// get stream of books ---------------------------------------------
+	streamReq := new(bookpb.GetBookRequest)
+	stream, err := bookClient.GetBookStream(context.Background(), streamReq)
+
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+	}
+
+	for {
+		// receive from server
+		bookResp, err := stream.Recv()
+
+		// handle connection close
+		if err == io.EOF {
+			break
+		}
+
+		// handle error lain
+		if err != nil {
+			log.Fatalln(err.Error())
+		}
+
+		fmt.Printf("bookResp: %v\n", bookResp)
+	}
 }

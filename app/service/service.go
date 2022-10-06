@@ -2,7 +2,7 @@ package service
 
 import (
 	bookService "yeyee2901/grpc/app/book"
-	bookpb "yeyee2901/grpc/gen/book/v1"
+	bookpb "yeyee2901/grpc/gen/proto/book/v1"
 
 	"google.golang.org/grpc"
 )
