@@ -2,9 +2,13 @@
 My journey on studying gRPC implementation in golang  
 &nbsp;  
 **Target**:
-- Integrate with `mysql` database (using `sqlx` package)
+- ✅ Integrate with `mysql` database (using `sqlx` package)
 - Create CRUD gRPC API
 - Try out protobuf for react-typescript (for front end) >> might be in separate repository
+
+# UPDATES
+- `2022-10-07`: Added unary RPC logger interceptor using [zerolog](https://github.com/rs/zerolog). You can monitor the log file using `tail -f log/service.log`
+- `2022-10-06`: Added [protoc-go-inject-tag](https://github.com/favadi/protoc-go-inject-tag) for custom struct tags injection, mainly used for easier integration with database layer using [jmoiron/sqlx](https://github.com/jmoiron/sqlx)
 
 # Project Structure (Best Practice from Google)
 ```
@@ -12,6 +16,10 @@ root
 ├── app
 │   ├── service                                 # Register gRPC services here
 │   │   └── service.go
+│   ├── interceptors                            # Interceptors are defined here, but are registered in main when initiating the server
+│   │   └── interceptors.go                     # this is equivalent to middlewares in HTTP
+│   ├── datasource                              # datasource, for now it's only postgre database
+│   │   └── datasource.go
 │   └── book                                    # book services stubs & logics are implemented here
 │       └── book.go
 ├── client                                      # for demonstration purposes
@@ -30,9 +38,21 @@ root
 │           └── book_service.proto
 ├── go.mod
 ├── go.sum
+├── schema.sql
 ├── main.go                                     # entry point
 ├── Makefile                                    # for simplifying build command
 └── README.md                                   # readme senpai~
+```
+
+# How to Try This Project
+1. Clone the repository
+2. Download the dependencies
+```bash
+go mod download && go mod verify
+```
+3. Run it!
+```bash
+go run .
 ```
 
 # Installing Tools for Working with Protobuf
@@ -40,15 +60,17 @@ We need 3 things:
 - `protoc`, the protobuf compiler. This is responsible for generating the code & stubs for your language of choice. Check your system for how to install these. I used Ubuntu & Arch, so I can provide the package name, otherwise you might need to install from [source]( https://developers.google.com/protocol-buffers/)
 - `protoc-gen-go`, a plugin for `protoc` which provides the capability of generating `golang` interfaces
 - `protoc-gen-go-grpc`, same as `protoc-gen-go`, but also provides the interface for integrating with gRPC services
+- `protoc-go-inject-tag`, this is useful for injecting custom tags. I use this because `sqlx` has a custom tag that allows object binding. Otherwise, you might need to "inject" your `.pb.go` file with your custom tags everytime you change your proto files, which is a hassle. This program simplifies that "tags injection" process.
 ```bash
-# arch based system
-yay -S protobuf  # available in AUR
+# arch based system available in AUR
+yay -S protobuf
 
-# debian based system
+# ubuntu
 sudo apt install protobuf-compiler
 
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest # plugin for generating go code
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest # plugin for generating golang grpc code
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+go install github.com/favadi/protoc-go-inject-tag@latest
 ```
 - Create `Makefile`, we will define our protobuf compile command & options here
 ```make
@@ -62,7 +84,7 @@ proto-go:
 			--go-grpc_out=${BASE_OUTPUT_DIR} --go-grpc_opt=paths=source_relative \ 
 			--go-grpc_opt=require_unimplemented_servers=false \
 			book/v1/*.proto
-
+	protoc-go-inject-tag -input="./gen/proto/book/v1/*.pb.go"
 ```
 *Note: the `require_unimplemented_servers=false` will disable forward compatibility. For most cases, this shouldn't matter much.
 &nbsp;  
@@ -78,13 +100,19 @@ syntax = "proto3";
 
 package book.v1;
 
-option go_package = "yeyee2901/protobuf/gen/book/v1;bookpb";
+option go_package = "yeyee2901/grpc/gen/book/v1;bookpb";
 
 message Book {
+  // @gotags: db:"title"
   string title = 1;
-  string isbn  = 2;
+
+  // @gotags: db:"isbn"
+  string isbn = 2;
+
+  // @gotags: db:"tahun"
   uint32 tahun = 3;
 }
+
 ```
 &nbsp;
 
