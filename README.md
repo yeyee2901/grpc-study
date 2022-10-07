@@ -2,7 +2,7 @@
 My journey on studying gRPC implementation in golang  
 &nbsp;  
 **Target**:
-- ✅ Integrate with `mysql` database (using `sqlx` package)
+- ✅ Integrate with `postgre` database (using `sqlx` package)
 - Create CRUD gRPC API
 - Try out protobuf for react-typescript (for front end) >> might be in separate repository
 
