@@ -50,10 +50,28 @@ root
 ```bash
 go mod download && go mod verify
 ```
-3. Run it!
+3. Run it the server
 ```bash
 go run .
 ```
+4. Open your Postman (yes, as of Postman 10, it now supports gRPC calls)
+5. Create a new workspace
+6. Create a new request
+![image](https://user-images.githubusercontent.com/55247343/194440939-0fc35363-1e80-41bd-a478-9356edbf3a8f.png)
+![image](https://user-images.githubusercontent.com/55247343/194440981-1a9c4fc6-95c7-4c5f-b57a-9002f87d8866.png)
+7. Create a new API definition using import method
+![image](https://user-images.githubusercontent.com/55247343/194441086-2b95a9b5-089b-422c-bc86-e89904af804f.png)
+8. Navigate it to service proto files (the one that ends with `_service.proto`). We do this since the service proto files already imported the model definition anyways, and also the RPC definitions are stored in the `_service.proto`, so this is the one that Postman needs to import.
+9. Add import path, this is crucial so the `_service.proto` can resolve its import statements. Navigate it to the **root project directory**. After you're done, click **Next**.
+![image](https://user-images.githubusercontent.com/55247343/194441328-a8e91701-9e5b-49c5-8946-c8f017cdc4f1.png)
+10. Type in your API name (any name you want), after you're done, click **Import as API**.
+![image](https://user-images.githubusercontent.com/55247343/194441512-e942bdf9-e83c-4a54-a264-341ab638792c.png)
+11. Set the server URL to `localhost:3030` (project default)
+12. Done! now you can 'invoke' the RPC methods!
+![image](https://user-images.githubusercontent.com/55247343/194441590-305cbc77-a386-446c-9de8-eb4576937d6a.png)
+13. Note that you can also generate sample protobuf message using Postman. Postman is smart enough to recognize the request message definition.
+![image](https://user-images.githubusercontent.com/55247343/194441731-d52a78dd-7586-4dbe-9673-e93d35511182.png)
+14. Also, if you change any of the proto files, you will need to re import it in the Postman 😜
 
 # Installing Tools for Working with Protobuf
 We need 3 things:
