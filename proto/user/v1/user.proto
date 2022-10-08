@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package user.v1;
+
+option go_package = "yeyee2901/grpc/gen/user/v1;userpb";
+
+message User {
+  // @gotags: db:"id"
+  int64 id = 1;
+
+  // @gotags: db:"name"
+  string name = 2;
+
+  // @gotags: db:"email"
+  string email = 3;
+
+  // @gotags: db:"created_at"
+  string created_at = 4;
+}

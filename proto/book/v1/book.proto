@@ -13,4 +13,5 @@ message Book {
 
   // @gotags: db:"tahun"
   uint32 tahun = 3;
+
 }

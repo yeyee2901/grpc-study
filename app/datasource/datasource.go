@@ -40,3 +40,20 @@ func (ds *DataSource) SaveBook(newBook interface{}) (err error) {
 
 	return nil
 }
+
+func (ds *DataSource) GetUserById(result interface{}, id int64) (err error) {
+	var args []interface{}
+	query := `
+        SELECT
+            name, email, DATE_TRUNC('second', created_at) AS created_at
+        FROM
+            users
+        WHERE
+            id = $1
+    `
+
+	args = append(args, id)
+	err = ds.DB.Get(result, query, args...)
+
+	return
+}

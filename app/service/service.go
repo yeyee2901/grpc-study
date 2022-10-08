@@ -3,7 +3,9 @@ package service
 import (
 	bookService "yeyee2901/grpc/app/book"
 	"yeyee2901/grpc/app/datasource"
+	userService "yeyee2901/grpc/app/user"
 	bookpb "yeyee2901/grpc/gen/proto/book/v1"
+	userpb "yeyee2901/grpc/gen/proto/user/v1"
 
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc"
@@ -28,4 +30,8 @@ func (s *Service) RegisterGRPCServices() {
 	// book handler
 	bookServer := bookService.NewBookService(ds)
 	bookpb.RegisterBookServiceServer(s.GRPCServer, bookServer)
+
+	// user handler
+	userServer := userService.NewUserService(ds)
+	userpb.RegisterUserServiceServer(s.GRPCServer, userServer)
 }
