@@ -20,7 +20,7 @@ func (us *UserService) GetUserById(_ context.Context, req *userpb.GetUserByIdReq
 		resp *userpb.GetUserByIdResponse
 	)
 
-    // get dari postgre DB
+	// get dari postgre DB
 	err := us.DataSource.GetUserById(&user, req.GetId())
 
 	// user not found
@@ -33,7 +33,7 @@ func (us *UserService) GetUserById(_ context.Context, req *userpb.GetUserByIdReq
 		return nil, status.Error(codes.Internal, "Database Error. "+err.Error())
 	}
 
-    // construct response message
+	// construct response message
 	resp = &userpb.GetUserByIdResponse{
 		User: &user,
 	}
@@ -42,7 +42,7 @@ func (us *UserService) GetUserById(_ context.Context, req *userpb.GetUserByIdReq
 }
 
 func (us *UserService) CreateUser(_ context.Context, _ *userpb.CreateUserRequest) (resp *userpb.CreateUserResponse, err error) {
-    return
+	return
 }
 
 func NewUserService(ds *datasource.DataSource) *UserService {
