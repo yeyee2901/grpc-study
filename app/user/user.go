@@ -14,6 +14,12 @@ type UserService struct {
 	DataSource *datasource.DataSource
 }
 
+func NewUserService(ds *datasource.DataSource) *UserService {
+	return &UserService{
+		DataSource: ds,
+	}
+}
+
 func (us *UserService) GetUserById(_ context.Context, req *userpb.GetUserByIdRequest) (*userpb.GetUserByIdResponse, error) {
 	var (
 		user userpb.User
@@ -41,12 +47,17 @@ func (us *UserService) GetUserById(_ context.Context, req *userpb.GetUserByIdReq
 	return resp, nil
 }
 
-func (us *UserService) CreateUser(_ context.Context, _ *userpb.CreateUserRequest) (resp *userpb.CreateUserResponse, err error) {
-	return
-}
-
-func NewUserService(ds *datasource.DataSource) *UserService {
-	return &UserService{
-		DataSource: ds,
+func (us *UserService) CreateUser(_ context.Context, req *userpb.CreateUserRequest) (*userpb.CreateUserResponse, error) {
+    // query ke DB
+	id, err := us.DataSource.CreateUser(req.GetName(), req.GetEmail())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Database error "+err.Error())
 	}
+
+    // construct message
+	resp := &userpb.CreateUserResponse{
+		Id:        id,
+		StatusMsg: "Sukses membuat user",
+	}
+	return resp, nil
 }

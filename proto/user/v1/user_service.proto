@@ -20,7 +20,8 @@ message GetUserByIdResponse {
 }
 
 message CreateUserRequest {
-  User new_user = 1;
+  string name = 1;
+  string email = 2;
 }
 
 message CreateUserResponse {

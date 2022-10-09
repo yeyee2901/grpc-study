@@ -57,3 +57,45 @@ func (ds *DataSource) GetUserById(result interface{}, id int64) (err error) {
 
 	return
 }
+
+func (ds *DataSource) CreateUser(name string, email string) (int64, error) {
+	// body
+	query := `
+        INSERT INTO users
+            (name, email)
+        VALUES
+            ($1, $2)
+        RETURNING
+            id
+    `
+
+    // begin transaction
+	tx, err := ds.DB.Beginx()
+    if err != nil {
+        tx.Rollback()
+        return 0, err
+    }
+
+	var args []interface{}
+	args = append(args, name)
+	args = append(args, email)
+
+	// query ke DB, pakai query rowx supaya bisa dapet id nya dari RETURNING clause
+    // gabisa pake NamedExec().LastInsertId() karena driver 'pgx'
+    // ga support method itu
+	var id int64
+	err = tx.QueryRowx(query, args...).Scan(&id)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	// commit transaction nya
+	tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	return id, nil
+}
